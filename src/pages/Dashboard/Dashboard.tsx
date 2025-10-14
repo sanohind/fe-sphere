@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
@@ -6,7 +5,7 @@ import ProfileCard from "../../components/cards/ProfileCard/ProfileCard";
 import { MenuCard } from "../../components/menu/MenuCard";
 import authService, { User, Project } from "../../services/authService";
 
-export default function MainMenu() {
+export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +36,14 @@ export default function MainMenu() {
   const handleProjectClick = async (projectId: string) => {
     try {
       const response = await authService.getProjectUrl(projectId);
-      window.open(response.data.url, '_blank');
+      
+      // Open project URL in new tab
+      const newWindow = window.open(response.data.url, '_blank');
+      
+      // If popup was blocked, show alert
+      if (!newWindow) {
+        alert('Popup blocked. Please allow popups for this site and try again.');
+      }
     } catch (err: any) {
       console.error('Error accessing project:', err);
       alert('Failed to access project. Please try again.');
