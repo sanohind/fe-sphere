@@ -7,7 +7,7 @@ import { useState } from "react";
 
 export default function SessionChart() {
   const options: ApexOptions = {
-    colors: ["#ffb899", "#ff9a70", "#ff2400"],
+    colors: ["#ffb899", "#ff9a70", "#4A1FB8"],
     labels: ["Desktop", "Mobile", "Tablet"],
     chart: {
       fontFamily: "Outfit, sans-serif",

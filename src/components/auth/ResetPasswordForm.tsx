@@ -26,7 +26,7 @@ export default function ResetPasswordForm() {
               strokeLinejoin="round"
             />
           </svg>
-          Back to dashboard
+          back
         </Link>
       </div>
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">

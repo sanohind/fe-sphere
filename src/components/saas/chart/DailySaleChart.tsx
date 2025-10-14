@@ -3,7 +3,7 @@ import { ApexOptions } from "apexcharts";
 
 export default function DailySaleChart() {
   const options: ApexOptions = {
-    colors: ["#ff2400"],
+    colors: ["#4A1FB8"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",

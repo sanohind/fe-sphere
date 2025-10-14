@@ -56,7 +56,7 @@ export default function EstimatedRevenue() {
     },
     fill: {
       type: "solid",
-      colors: ["#FF2400"],
+      colors: ["#4A1FB8"],
     },
     stroke: {
       lineCap: "round",

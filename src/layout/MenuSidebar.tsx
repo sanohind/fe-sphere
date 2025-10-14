@@ -170,7 +170,7 @@ const supportItems: NavItem[] = [
   },
 ];
 
-const AppSidebar: React.FC = () => {
+const MenuSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
 
@@ -489,4 +489,4 @@ const AppSidebar: React.FC = () => {
   );
 };
 
-export default AppSidebar;
+export default MenuSidebar;

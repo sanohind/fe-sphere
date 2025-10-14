@@ -8,7 +8,7 @@ import { MoreDotIcon } from "../../icons";
 export default function MonthlyTarget() {
   const series = [75.55];
   const options: ApexOptions = {
-    colors: ["#FF2400"],
+    colors: ["#4A1FB8"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "radialBar",
@@ -47,7 +47,7 @@ export default function MonthlyTarget() {
     },
     fill: {
       type: "solid",
-      colors: ["#FF2400"],
+      colors: ["#4A1FB8"],
     },
     stroke: {
       lineCap: "round",

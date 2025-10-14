@@ -12,7 +12,7 @@ export default function ActiveUsersChart() {
       position: "top",
       horizontalAlign: "left",
     },
-    colors: ["#ff2400"],
+    colors: ["#4A1FB8"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 140,

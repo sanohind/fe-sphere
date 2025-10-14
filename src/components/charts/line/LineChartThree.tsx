@@ -240,7 +240,7 @@ export default function LineChartThree() {
       position: "top",
       horizontalAlign: "left",
     },
-    colors: ["#FF2400"],
+    colors: ["#4A1FB8"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 335,
