@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
+import Button from "../components/ui/button/Button";
 
 const MenuHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -61,6 +62,12 @@ const MenuHeader: React.FC = () => {
           <div>
             <p className="text-gray-500 dark:text-gray-100 text-sm">{new Date().toLocaleDateString()}</p>
             <p className="text-gray-500 dark:text-gray-100 text-sm">{new Date().toLocaleTimeString()}</p>
+          </div>
+          {/* User Manage Toggler */}
+          <div>
+            <Link to="/user-manage">
+              <Button variant="outline">User Manage</Button>
+            </Link>
           </div>
           <div className="flex items-center gap-2 2xsm:gap-3">
             {/* <!-- Dark Mode Toggler --> */}

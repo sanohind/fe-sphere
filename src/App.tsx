@@ -12,6 +12,7 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import SignIn from "./pages/AuthPages/SignIn";
 import ComingSoon from "./pages/OtherPage/ComingSoon";
 import Landing from "./pages/LandingPage/Landing"
+import UserManage from "./pages/UserManage/user-manage";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
           {/* Main Menu - With Custom Sidebar and Header */}
           <Route element={<MenuLayout />}>
             <Route path="/main-menu" element={<MainMenu />} />
+            <Route path="/user-manage" element={<UserManage />} />
           </Route>
 
           {/* Landing Page */}
