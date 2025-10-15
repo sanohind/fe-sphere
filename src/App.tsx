@@ -8,6 +8,7 @@ import ResetPassword from "./pages/AuthPages/ResetPassword";
 import TwoStepVerification from "./pages/AuthPages/TwoStepVerification";
 import Success from "./pages/OtherPage/Success";
 import MenuLayout from "./layout/MenuLayout";
+import MainMenuLayout from "./layout/MainMenuLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import SignIn from "./pages/AuthPages/SignIn";
 import ComingSoon from "./pages/OtherPage/ComingSoon";
@@ -20,9 +21,13 @@ export default function App() {
       <Router>
         <ScrollToTop />
         <Routes>
-          {/* Main Menu - With Custom Sidebar and Header */}
-          <Route element={<MenuLayout />}>
+          {/* Main Menu - With Custom Sidebar and Header (No UserDropdown) */}
+          <Route element={<MainMenuLayout />}>
             <Route path="/main-menu" element={<MainMenu />} />
+          </Route>
+
+          {/* Other Pages - With UserDropdown */}
+          <Route element={<MenuLayout />}>
             <Route path="/user-manage" element={<UserManage />} />
           </Route>
 

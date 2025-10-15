@@ -5,12 +5,15 @@ import PageMeta from "../../components/common/PageMeta";
 import ProfileCard from "../../components/cards/ProfileCard/ProfileCard";
 import { MenuCard } from "../../components/menu/MenuCard";
 import authService, { User, Project } from "../../services/authService";
+import { Modal } from "../../components/ui/modal";
+import Button from "../../components/ui/button/Button";
 
 export default function MainMenu() {
   const [user, setUser] = useState<User | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -72,10 +75,7 @@ export default function MainMenu() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
       </div>
     );
   }
@@ -101,8 +101,8 @@ export default function MainMenu() {
   return (
     <>
       <PageMeta
-        title="Be-Sphere Dashboard | SSO Portal"
-        description="Access your projects through Be-Sphere SSO portal"
+        title="Sphere Dashboard | SSO Portal"
+        description="Access your projects through Sphere SSO portal"
       />
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12 xl:col-span-4">
@@ -114,18 +114,18 @@ export default function MainMenu() {
             contactText="Logout"
             avatarUrl={user?.avatar || "./images/logo/Iki.png"}
             showUserInfo={true}
-            enableTilt={true}
+            enableTilt={false}
             enableMobileTilt={true}
-            onContactClick={handleLogout}
+            onContactClick={() => setIsLogoutModalOpen(true)}
           />
         </div>
         <div className="col-span-12 xl:col-span-8">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Your Projects
+              Applications
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Select a project to access your applications
+              Select application to access
             </p>
           </div>
           {projects.length === 0 ? (
@@ -134,10 +134,10 @@ export default function MainMenu() {
                 📁
               </div>
               <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                No Projects Available
+                No Applications Available
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                You don't have access to any projects yet.
+                You don't have access to any applications yet.
               </p>
             </div>
           ) : (
@@ -160,6 +160,40 @@ export default function MainMenu() {
           )}
         </div>
       </div>
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        className="max-w-md mx-4"
+      >
+        <div className="p-6 sm:p-8">
+          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/20">
+            <span className="text-red-600 dark:text-red-400 text-xl">!</span>
+          </div>
+          <h2 className="mb-2 text-xl font-semibold text-center text-gray-800 dark:text-white/90">
+            Logout
+          </h2>
+          <p className="mb-6 text-sm text-center text-gray-500 dark:text-gray-400">
+            Are you sure you want to log out?
+          </p>
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsLogoutModalOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleLogout}
+              className="flex-1 bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

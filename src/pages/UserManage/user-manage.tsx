@@ -1,74 +1,113 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import ComponentCard from "../../components/common/ComponentCard";
 import Button from "../../components/ui/button/Button";
 import Input from "../../components/form/input/InputField";
 import Label from "../../components/form/Label";
 import { Modal } from "../../components/ui/modal";
-import { UserIcon } from "../../icons";
+import { UserIcon, PencilIcon, TrashBinIcon, PlusIcon } from "../../icons";
 import RoleBadge from "../../components/ui/badge/RoleBadge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
+import PaginationWithIcon from "../../components/tables/DataTables/TableOne/PaginationWithIcon";
+import ProtectedRoute from "../../components/common/ProtectedRoute";
+import userService, { User, CreateUserData, UpdateUserData, Role } from "../../services/userService";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: "active" | "inactive";
-  createdAt: string;
-}
+// Remove duplicate User interface since it's imported from userService
 
 export default function UserManage() {
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: "1",
-      name: "Super Admin",
-      email: "superadmin@besphere.com",
-      role: "Super Admin",
-      status: "active",
-      createdAt: "2024-01-15",
-    },
-    {
-      id: "2",
-      name: "John Doe",
-      email: "john.doe@besphere.com",
-      role: "Admin",
-      status: "active",
-      createdAt: "2024-02-20",
-    },
-    {
-      id: "3",
-      name: "Jane Smith",
-      email: "jane.smith@besphere.com",
-      role: "User",
-      status: "inactive",
-      createdAt: "2024-03-10",
-    },
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "",
-    status: "active" as "active" | "inactive",
+    username: "",
+    password: "",
+    nik: "",
+    phone_number: "",
+    role_id: "",
+    department_id: "",
+    is_active: true,
   });
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Load data on component mount
+  useEffect(() => {
+    loadUsers();
+    loadRoles();
+  }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const loadUsers = async () => {
+    try {
+      setIsLoading(true);
+      const response = await userService.getUsers();
+      setUsers(response.data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadRoles = async () => {
+    try {
+      const response = await userService.getAvailableRoles();
+      setRoles(response.data);
+    } catch (err: any) {
+      console.error('Failed to load roles:', err);
+    }
+  };
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = users.length;
+    const activeUsers = users.filter(user => user.is_active).length;
+    const adminUsers = users.filter(user => 
+      user.role.slug === 'admin' || user.role.slug === 'superadmin'
+    ).length;
+
+    return { total, activeUsers, adminUsers };
+  }, [users]);
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(
+      (user) =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.role.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [users, searchTerm]);
+
+  const totalItems = filteredUsers.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  const currentData = filteredUsers.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === 'radio' ? value === 'true' : (type === 'checkbox' ? (e.target as HTMLInputElement).checked : value),
     }));
   };
 
@@ -78,8 +117,13 @@ export default function UserManage() {
     setFormData({
       name: "",
       email: "",
-      role: "",
-      status: "active",
+      username: "",
+      password: "",
+      nik: "",
+      phone_number: "",
+      role_id: "",
+      department_id: "",
+      is_active: true,
     });
     setIsModalOpen(true);
   };
@@ -90,272 +134,436 @@ export default function UserManage() {
     setFormData({
       name: user.name,
       email: user.email,
-      role: user.role,
-      status: user.status,
+      username: user.username,
+      password: "",
+      nik: user.nik || "",
+      phone_number: user.phone_number || "",
+      role_id: user.role.id.toString(),
+      department_id: user.department?.id.toString() || "",
+      is_active: user.is_active,
     });
     setIsModalOpen(true);
   };
 
-  const handleDeleteUser = (userId: string) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      setUsers(users.filter((user) => user.id !== userId));
+  const handleDeleteClick = (user: User) => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (userToDelete) {
+      try {
+        await userService.deleteUser(userToDelete.id);
+        setUsers(users.filter((user) => user.id !== userToDelete.id));
+        setIsDeleteModalOpen(false);
+        setUserToDelete(null);
+      } catch (err: any) {
+        setError(err.message);
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isEditMode && currentUser) {
-      // Update existing user
-      setUsers(
-        users.map((user) =>
-          user.id === currentUser.id
-            ? { ...user, ...formData }
-            : user
-        )
-      );
-    } else {
-      // Add new user
-      const newUser: User = {
-        id: Date.now().toString(),
-        ...formData,
-        createdAt: new Date().toISOString().split("T")[0],
-      };
-      setUsers([...users, newUser]);
+    try {
+      if (isEditMode && currentUser) {
+        // Update existing user
+        const updateData: UpdateUserData = {
+          name: formData.name,
+          email: formData.email,
+          username: formData.username,
+          nik: formData.nik,
+          phone_number: formData.phone_number,
+          is_active: formData.is_active,
+        };
+
+        // Only include password if provided
+        if (formData.password) {
+          updateData.password = formData.password;
+        }
+
+        const response = await userService.updateUser(currentUser.id, updateData);
+        setUsers(users.map(user => user.id === currentUser.id ? response.data : user));
+      } else {
+        // Add new user
+        const createData: CreateUserData = {
+          name: formData.name,
+          email: formData.email,
+          username: formData.username,
+          password: formData.password,
+          nik: formData.nik,
+          phone_number: formData.phone_number,
+          role_id: parseInt(formData.role_id),
+          department_id: formData.department_id ? parseInt(formData.department_id) : undefined,
+        };
+
+        const response = await userService.createUser(createData);
+        setUsers([...users, response.data]);
+      }
+
+      setIsModalOpen(false);
+      setFormData({
+        name: "",
+        email: "",
+        username: "",
+        password: "",
+        nik: "",
+        phone_number: "",
+        role_id: "",
+        department_id: "",
+        is_active: true,
+      });
+    } catch (err: any) {
+      setError(err.message);
     }
-
-    setIsModalOpen(false);
-    setFormData({
-      name: "",
-      email: "",
-      role: "",
-      status: "active",
-    });
   };
 
-  const handleToggleStatus = (userId: string) => {
-    setUsers(
-      users.map((user) =>
-        user.id === userId
-          ? { ...user, status: user.status === "active" ? "inactive" : "active" }
-          : user
-      )
+  const handleToggleStatus = async (userId: number) => {
+    try {
+      const user = users.find(u => u.id === userId);
+      if (user) {
+        const updateData: UpdateUserData = {
+          is_active: !user.is_active
+        };
+        const response = await userService.updateUser(userId, updateData);
+        setUsers(users.map(u => u.id === userId ? response.data : u));
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+      </div>
     );
-  };
+  }
 
   return (
-    <>
+    <ProtectedRoute requiredRole="admin">
       <PageMeta
-        title="User Management | Be-Sphere"
-        description="Manage users and their permissions in Be-Sphere"
+        title="User Management | Sphere"
+        description="Manage users and their permissions in Sphere"
       />
-      <PageBreadcrumb  pageTitle="User Management" className="mb-6" />
-      {/* Count user section */}
-      <div className="flex items-center justify-between mb-6 gap-4">
-        {/* User count card */}
-        <div className="flex w-full items-center justify-between bg-white dark:bg-[#171A2A]/70 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
-            {/* Icon */}
-            <div className="flex items-center gap-2">
-                <UserIcon className="text-gray-800 size-6 dark:text-white/90" />
-                <h1 className="text-lg font-medium text-gray-700 dark:text-gray-200">Total User</h1>
+      <PageBreadcrumb pageTitle="User Management" className="mb-6" />
+
+      {/* Header */}
+      <div className="mb-8">
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="rounded-2xl border border-gray-200 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-blue-100 dark:bg-blue-500/20 rounded-xl">
+                <div className="text-blue-600 dark:text-blue-400">
+                  <UserIcon />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Users</p>
+                <p className="text-2xl font-semibold text-gray-800 dark:text-white/90">{stats.total}</p>
+              </div>
             </div>
-            <h1 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-            {users.length}
-            </h1>
+          </div>
         </div>
-        {/* Admin count card */}
-        <div className="flex w-full items-center justify-between bg-white dark:bg-[#171A2A]/70 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
-            <div className="flex items-center gap-2">
-                <UserIcon className="text-gray-800 size-6 dark:text-white/90" />
-                <h1 className="text-lg font-medium text-gray-700 dark:text-gray-200">Total Admin</h1>
+
+        <div className="rounded-2xl border border-gray-200 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-green-100 dark:bg-green-500/20 rounded-xl">
+                <div className="text-green-600 dark:text-green-400">
+                  <UserIcon />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Active Users</p>
+                <p className="text-2xl font-semibold text-gray-800 dark:text-white/90">{stats.activeUsers}</p>
+              </div>
             </div>
-            <h1 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-            {users.filter((user) => user.role === "Admin").length}
-            </h1>
-        </div>            
-        {/* Operator count card */}
-        <div className="flex w-full items-center justify-between bg-white dark:bg-[#171A2A]/70 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
-            <div className="flex items-center gap-2">
-                <UserIcon className="text-gray-800 size-6 dark:text-white/90" />
-                <h1 className="text-lg font-medium text-gray-700 dark:text-gray-200">Total Operator</h1>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white px-6 py-5 dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-purple-100 dark:bg-purple-500/20 rounded-xl">
+                <div className="text-purple-600 dark:text-purple-400">
+                  <UserIcon />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Admin Users</p>
+                <p className="text-2xl font-semibold text-gray-800 dark:text-white/90">{stats.adminUsers}</p>
+              </div>
             </div>
-            <h1 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-            {users.filter((user) => user.role === "Operator").length}
-            </h1>
+          </div>
         </div>
       </div>
-      {/* User List */}
-      <div className="space-y-5 sm:space-y-6">
-        <ComponentCard
-          title="User List"
-          desc="Manage all users in the system"
-        >
-          {/* Search and Add Button */}
-          <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex-1 max-w-md">
-              <Input
-                type="text"
-                placeholder="Search by name, email, or role..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button
+      {/* Main Content Card */}
+      <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        {/* Header with Add Button */}
+        <div className="flex flex-col gap-5 px-6 py-5 border-b border-gray-200 dark:border-gray-800 sm:flex-row sm:justify-between">
+          <div className="w-full">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">User List</h3>
+            <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">Manage all users in the system</p>
+          </div>
+          <div className="flex items-start w-full gap-3 sm:justify-end">
+            <button
               onClick={handleAddUser}
-              startIcon={
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M10 4.16669V15.8334M4.16669 10H15.8334"
-                    stroke="currentColor"
-                    strokeWidth="1.67"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              }
+              className="inline-flex items-center gap-2 rounded-lg border border-purple-600 bg-purple-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-purple-700 hover:text-white"
             >
+              <PlusIcon />
               Add User
-            </Button>
+            </button>
           </div>
+        </div>
 
-          {/* Users Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-800">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Name
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Email
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Role
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Created At
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
+        {/* Table Content */}
+        <div className="p-6">
+          <div className="overflow-hidden bg-white dark:bg-white/[0.03] rounded-xl">
+            <div className="flex flex-col gap-2 px-4 py-4 border border-b-0 border-gray-100 dark:border-white/[0.05] rounded-t-xl sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-gray-500 dark:text-gray-400"> Show </span>
+                <div className="relative z-20 bg-transparent">
+                  <select
+                    className="w-full py-2 pl-3 pr-8 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-9 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                    value={itemsPerPage}
+                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  >
+                    {[5, 8, 10].map((value) => (
+                      <option
+                        key={value}
+                        value={value}
+                        className="text-gray-500 dark:bg-gray-900 dark:text-gray-400"
+                      >
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="absolute z-30 text-gray-500 -translate-y-1/2 right-2 top-1/2 dark:text-gray-400">
+                    <svg
+                      className="stroke-current"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      No users found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <tr
-                      key={user.id}
-                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-white/[0.02]"
-                    >
-                      <td className="px-4 py-4 text-sm text-gray-800 dark:text-white/90">
-                        {user.name}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
-                        {user.email}
-                      </td>
-                      <td className="px-4 py-4">
-                        <RoleBadge role={user.role} />
-                      </td>
-                      <td className="px-4 py-4">
-                        <button
-                          onClick={() => handleToggleStatus(user.id)}
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                            user.status === "active"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400"
-                          }`}
+                      <path
+                        d="M3.8335 5.9165L8.00016 10.0832L12.1668 5.9165"
+                        stroke=""
+                        strokeWidth="1.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                </div>
+                <span className="text-gray-500 dark:text-gray-400"> entries </span>
+              </div>
+
+              <div className="relative">
+                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none left-4 top-1/2 dark:text-gray-400">
+                  <svg
+                    className="fill-current"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M3.04199 9.37363C3.04199 5.87693 5.87735 3.04199 9.37533 3.04199C12.8733 3.04199 15.7087 5.87693 15.7087 9.37363C15.7087 12.8703 12.8733 15.7053 9.37533 15.7053C5.87735 15.7053 3.04199 12.8703 3.04199 9.37363ZM9.37533 1.54199C5.04926 1.54199 1.54199 5.04817 1.54199 9.37363C1.54199 13.6991 5.04926 17.2053 9.37533 17.2053C11.2676 17.2053 13.0032 16.5344 14.3572 15.4176L17.1773 18.238C17.4702 18.5309 17.945 18.5309 18.2379 18.238C18.5308 17.9451 18.5309 17.4703 18.238 17.1773L15.4182 14.3573C16.5367 13.0033 17.2087 11.2669 17.2087 9.37363C17.2087 5.04817 13.7014 1.54199 9.37533 1.54199Z"
+                      fill=""
+                    />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by name, email, or role..."
+                  className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-11 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[300px]"
+                />
+              </div>
+            </div>
+
+            <div className="max-w-full overflow-x-auto custom-scrollbar">
+              <div>
+                <Table>
+                  <TableHeader className="border-t border-gray-100 dark:border-white/[0.05]">
+                    <TableRow>
+                      <TableCell
+                        isHeader
+                        className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
+                      >
+                        <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
+                          No
+                        </p>
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
+                      >
+                        <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
+                          Name
+                        </p>
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
+                      >
+                        <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
+                          Email
+                        </p>
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
+                      >
+                        <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
+                          Role
+                        </p>
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
+                      >
+                        <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
+                          Status
+                        </p>
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
+                      >
+                        <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
+                          Created At
+                        </p>
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
+                      >
+                        <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
+                          Actions
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentData.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
                         >
-                          {user.status}
-                        </button>
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleEditUser(user)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:bg-blue-900/20"
-                            title="Edit"
-                          >
-                            <svg
-                              width="18"
-                              height="18"
-                              viewBox="0 0 18 18"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
+                          No users found
+                        </td>
+                      </tr>
+                    ) : (
+                      currentData.map((user, index) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05] whitespace-nowrap">
+                            <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                              {startIndex + index + 1}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05] whitespace-nowrap">
+                            <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                              {user.name}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 font-normal dark:text-gray-400/90 text-gray-800 border border-gray-100 dark:border-white/[0.05] text-theme-sm whitespace-nowrap">
+                            {user.email}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
+                            <RoleBadge role={user.role.name} />
+                          </TableCell>
+                          <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
+                            <button
+                              onClick={() => handleToggleStatus(user.id)}
+                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${user.is_active
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                  : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400"
+                                }`}
                             >
-                              <path
-                                d="M8.25 3H3C2.58579 3 2.25 3.33579 2.25 3.75V15C2.25 15.4142 2.58579 15.75 3 15.75H14.25C14.6642 15.75 15 15.4142 15 15V9.75M13.5 2.25L15.75 4.5M6.75 11.25L15.75 2.25"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg dark:text-red-400 dark:hover:bg-red-900/20"
-                            title="Delete"
-                          >
-                            <svg
-                              width="18"
-                              height="18"
-                              viewBox="0 0 18 18"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M3.75 4.5H14.25M7.5 8.25V12.75M10.5 8.25V12.75M2.25 4.5H15.75M13.5 4.5V14.25C13.5 14.6642 13.1642 15 12.75 15H5.25C4.83579 15 4.5 14.6642 4.5 14.25V4.5M6 4.5V3C6 2.58579 6.33579 2.25 6.75 2.25H11.25C11.6642 2.25 12 2.58579 12 3V4.5"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                              {user.is_active ? "active" : "inactive"}
+                            </button>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 font-normal dark:text-gray-400/90 text-gray-800 border border-gray-100 dark:border-white/[0.05] text-theme-sm whitespace-nowrap">
+                            {new Date(user.created_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleEditUser(user)}
+                                className="p-2 rounded-lg text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-colors"
+                                title="Edit user"
+                              >
+                                <PencilIcon />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteClick(user)}
+                                className="p-2 rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
+                                title="Delete user"
+                              >
+                                <TrashBinIcon />
+                              </button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            <div className="border border-t-0 rounded-b-xl border-gray-100 py-4 pl-[18px] pr-4 dark:border-white/[0.05]">
+              <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between">
+                {/* Left side: Showing entries */}
+                <div className="pb-3 xl:pb-0">
+                  <p className="pb-3 text-sm font-medium text-center text-gray-500 border-b border-gray-100 dark:border-gray-800 dark:text-gray-400 xl:border-b-0 xl:pb-0 xl:text-left">
+                    Showing {startIndex + 1} to {endIndex} of {totalItems} entries
+                  </p>
+                </div>
+                <PaginationWithIcon
+                  totalPages={totalPages}
+                  initialPage={currentPage}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            </div>
           </div>
-        </ComponentCard>
+        </div>
       </div>
 
       {/* Add/Edit User Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        className="max-w-2xl mx-4"
+        className="max-w-4xl mx-4 max-h-[90vh] overflow-y-auto"
       >
-        <div className="p-6 sm:p-8">
-          <h2 className="mb-6 text-2xl font-semibold text-gray-800 dark:text-white/90">
+        <div className="p-4 sm:p-6">
+          <h2 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
             {isEditMode ? "Edit User" : "Add New User"}
           </h2>
           <form onSubmit={handleSubmit}>
-            <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Row 1: Name and Email */}
               <div>
                 <Label htmlFor="name">
                   Name <span className="text-red-500">*</span>
@@ -379,37 +587,120 @@ export default function UserManage() {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="user@besphere.com"
+                  placeholder="user@sphere.com"
                   value={formData.email}
                   onChange={handleInputChange}
                   className="mt-1.5"
                 />
               </div>
 
+              {/* Row 2: Username and Password */}
               <div>
-                <Label htmlFor="role">
-                  Role <span className="text-red-500">*</span>
+                <Label htmlFor="username">
+                  Username <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id="role"
-                  name="role"
+                  id="username"
+                  name="username"
                   type="text"
-                  placeholder="e.g., Admin, User, Manager"
-                  value={formData.role}
+                  placeholder="Enter username"
+                  value={formData.username}
                   onChange={handleInputChange}
                   className="mt-1.5"
                 />
               </div>
 
               <div>
-                <Label htmlFor="status">Status</Label>
+                {!isEditMode ? (
+                  <>
+                    <Label htmlFor="password">
+                      Password <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      placeholder="Enter password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className="mt-1.5"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Label htmlFor="password">
+                      New Password (leave empty to keep current)
+                    </Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      placeholder="Enter new password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className="mt-1.5"
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* Row 3: Role and NIK */}
+              <div>
+                <Label htmlFor="role_id">
+                  Role <span className="text-red-500">*</span>
+                </Label>
+                <select
+                  id="role_id"
+                  name="role_id"
+                  value={formData.role_id}
+                  onChange={handleInputChange}
+                  className="mt-1.5 w-full py-2 pl-3 pr-8 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-9 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                >
+                  <option value="">Select a role</option>
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label htmlFor="nik">NIK</Label>
+                <Input
+                  id="nik"
+                  name="nik"
+                  type="text"
+                  placeholder="Enter NIK"
+                  value={formData.nik}
+                  onChange={handleInputChange}
+                  className="mt-1.5"
+                />
+              </div>
+
+              {/* Row 4: Phone Number and Status */}
+              <div>
+                <Label htmlFor="phone_number">Phone Number</Label>
+                <Input
+                  id="phone_number"
+                  name="phone_number"
+                  type="text"
+                  placeholder="Enter phone number"
+                  value={formData.phone_number}
+                  onChange={handleInputChange}
+                  className="mt-1.5"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="is_active">Status</Label>
                 <div className="flex gap-4 mt-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
-                      name="status"
-                      value="active"
-                      checked={formData.status === "active"}
+                      name="is_active"
+                      value="true"
+                      checked={formData.is_active === true}
                       onChange={handleInputChange}
                       className="w-4 h-4 text-brand-500 border-gray-300 focus:ring-brand-500"
                     />
@@ -420,9 +711,9 @@ export default function UserManage() {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
-                      name="status"
-                      value="inactive"
-                      checked={formData.status === "inactive"}
+                      name="is_active"
+                      value="false"
+                      checked={formData.is_active === false}
                       onChange={handleInputChange}
                       className="w-4 h-4 text-brand-500 border-gray-300 focus:ring-brand-500"
                     />
@@ -450,6 +741,55 @@ export default function UserManage() {
           </form>
         </div>
       </Modal>
-    </>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        className="max-w-md mx-4"
+      >
+        <div className="p-6 sm:p-8">
+          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/20">
+            <TrashBinIcon className="text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="mb-2 text-xl font-semibold text-center text-gray-800 dark:text-white/90">
+            Delete User
+          </h2>
+          <p className="mb-2 text-sm text-center text-gray-500 dark:text-gray-400">
+            Are you sure you want to delete this user?
+          </p>
+          {userToDelete && (
+            <div className="mb-6 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {userToDelete.name}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {userToDelete.email}
+              </p>
+            </div>
+          )}
+          <p className="mb-6 text-xs text-center text-gray-500 dark:text-gray-400">
+            This action cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmDelete}
+              className="flex-1 bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700"
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </ProtectedRoute>
   );
 }

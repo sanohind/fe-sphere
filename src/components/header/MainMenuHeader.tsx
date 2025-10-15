@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
-import UserDropdown from "../components/header/UserDropdown";
+import { ThemeToggleButton } from "../common/ThemeToggleButton";
 
-const MenuHeader: React.FC = () => {
+const MainMenuHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -118,10 +118,8 @@ const MenuHeader: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 2xsm:gap-3">
-              {/* <!-- Dark Mode Toggler --> */}
+              {/* Dark Mode Toggler */}
               <ThemeToggleButton />
-              {/* <!-- User Area --> */}
-              <UserDropdown />
             </div>
           </div>
         </div>
@@ -131,4 +129,4 @@ const MenuHeader: React.FC = () => {
   );
 };
 
-export default MenuHeader;
+export default MainMenuHeader;

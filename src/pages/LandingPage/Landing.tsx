@@ -1,6 +1,6 @@
 import PageMeta from "../../components/common/PageMeta";
 import CardSwap, {Card} from "../../components/card_swap/CardSwarp";
-import MenuHeader from "../../layout/MenuHeader";
+import LandingHeader from "../../components/header/LandingHeader";
 import Shuffle from "../../components/effects/Shuffle";
 import { useNavigate } from "react-router";
 
@@ -16,7 +16,7 @@ export default function Landing() {
       {/* Layout Container */}
       <div className="h-screen bg-white dark:bg-gray-900 flex flex-col overflow-hidden">
         {/* Navbar */}
-        <MenuHeader />
+        <LandingHeader />
         
         {/* Hero Section - Takes remaining space */}
         <section className="relative flex-1 flex items-center overflow-hidden">
@@ -47,7 +47,7 @@ export default function Landing() {
                   
 
                   {/* Sign In button */}
-                  <button onClick={() => navigate('/signin')} className="inline-flex items-center px-10 py-4 rounded rounded-24 shadow-sm text-xl font-medium text-white font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
+                  <button onClick={() => navigate('/signin')} className="inline-flex items-center px-10 py-4 rounded-lg shadow-sm text-xl font-medium text-gray-700 transition-colors bg-gray-100 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
                     Get Started
                   </button>
                 </div>

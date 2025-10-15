@@ -107,8 +107,8 @@ export default function Dashboard() {
   return (
     <>
       <PageMeta
-        title="Be-Sphere Dashboard | SSO Portal"
-        description="Access your projects through Be-Sphere SSO portal"
+        title="Sphere Dashboard | SSO Portal"
+        description="Access your projects through Sphere SSO portal"
       />
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12 xl:col-span-4">
@@ -128,10 +128,10 @@ export default function Dashboard() {
         <div className="col-span-12 xl:col-span-8">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Your Projects
+              Applications
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Select a project to access your applications
+              Select yout applications to access
             </p>
           </div>
           {projects.length === 0 ? (
@@ -140,10 +140,10 @@ export default function Dashboard() {
                 📁
               </div>
               <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                No Projects Available
+                No Applications Available
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                You don't have access to any projects yet.
+                You don't have access to any applications yet.
               </p>
             </div>
           ) : (
