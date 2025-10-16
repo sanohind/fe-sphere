@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import Button from "../../components/ui/button/Button";
@@ -21,6 +22,7 @@ import userService, { User, CreateUserData, UpdateUserData, Role } from "../../s
 // Remove duplicate User interface since it's imported from userService
 
 export default function UserManage() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -315,9 +317,15 @@ export default function UserManage() {
         <div className="flex flex-col gap-5 px-6 py-5 border-b border-gray-200 dark:border-gray-800 sm:flex-row sm:justify-between">
           <div className="w-full">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">User List</h3>
-            <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">Manage all users in the system</p>
           </div>
           <div className="flex items-start w-full gap-3 sm:justify-end">
+            {/* Audit logs Button */}
+            <button
+              onClick={() => navigate('/logs')}
+              className="inline-flex items-center gap-2 rounded-lg border border-purple-600 bg-purple-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-purple-700 hover:text-white">
+              Audit Logs
+            </button>
+            {/* Add User Button */}
             <button
               onClick={handleAddUser}
               className="inline-flex items-center gap-2 rounded-lg border border-purple-600 bg-purple-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-purple-700 hover:text-white"

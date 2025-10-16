@@ -8,12 +8,12 @@ import ResetPassword from "./pages/AuthPages/ResetPassword";
 import TwoStepVerification from "./pages/AuthPages/TwoStepVerification";
 import Success from "./pages/OtherPage/Success";
 import MenuLayout from "./layout/MenuLayout";
-import MainMenuLayout from "./layout/MainMenuLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import SignIn from "./pages/AuthPages/SignIn";
 import ComingSoon from "./pages/OtherPage/ComingSoon";
 import Landing from "./pages/LandingPage/Landing"
 import UserManage from "./pages/UserManage/user-manage";
+import Logs from "./pages/AuditLogs/Logs";
 
 export default function App() {
   return (
@@ -21,14 +21,11 @@ export default function App() {
       <Router>
         <ScrollToTop />
         <Routes>
-          {/* Main Menu - With Custom Sidebar and Header (No UserDropdown) */}
-          <Route element={<MainMenuLayout />}>
-            <Route path="/main-menu" element={<MainMenu />} />
-          </Route>
-
-          {/* Other Pages - With UserDropdown */}
+          {/* Pages with MenuLayout - Conditional UserDropdown and User Manage button */}
           <Route element={<MenuLayout />}>
+            <Route path="/main-menu" element={<MainMenu />} />
             <Route path="/user-manage" element={<UserManage />} />
+            <Route path="/logs" element={<Logs />} />
           </Route>
 
           {/* Landing Page */}

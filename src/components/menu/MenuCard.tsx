@@ -14,7 +14,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
   imageUrl = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=250&fit=crop'
 }) => {
   return (
-    <div className="bg-[#171A2A] border border-gray-800 rounded-[12px] overflow-hidden hover:scale-105 transition-transform cursor-pointer">
+    <div className="bg-[#171A2A] border border-gray-800 rounded-[12px] overflow-hidden hover:scale-105 transition-transform cursor-pointer h-[220px] flex flex-col">
       {/* Bagian Preview Foto */}
       <div className="relative w-full h-32 bg-gray-900 overflow-hidden">
         <img 
@@ -26,9 +26,9 @@ export const MenuCard: React.FC<MenuCardProps> = ({
       </div>
       
       {/* Bagian Konten */}
-      <div className="p-4">
-        <h3 className="text-white text-xl font-bold mb-1">{title}</h3>
-        <p className="text-gray-300 text-sm">{description}</p>
+      <div className="p-4 flex-1 flex flex-col min-h-28">
+        <h3 className="text-white text-xl font-bold mb-2">{title}</h3>
+        <p className="text-gray-300 text-sm line-clamp-2">{description}</p>
       </div>
       
       {/* Color Accent Bar */}
