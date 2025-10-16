@@ -450,7 +450,7 @@ export default function UserManage() {
                         className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
                       >
                         <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
-                          Created At
+                          Last Login At
                         </p>
                       </TableCell>
                       <TableCell
@@ -504,7 +504,7 @@ export default function UserManage() {
                             </button>
                           </TableCell>
                           <TableCell className="px-4 py-3 font-normal dark:text-gray-400/90 text-gray-800 border border-gray-100 dark:border-white/[0.05] text-theme-sm whitespace-nowrap">
-                            {new Date(user.created_at).toLocaleDateString()}
+                            {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : 'Never'}
                           </TableCell>
                           <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
                             <div className="flex gap-1">
