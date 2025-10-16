@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import {
@@ -10,19 +10,9 @@ import {
 } from "../../components/ui/table";
 import PaginationWithIcon from "../../components/tables/DataTables/TableOne/PaginationWithIcon";
 import ProtectedRoute from "../../components/common/ProtectedRoute";
+import auditLogService, { AuditLog, AuditLogFilters } from "../../services/auditLogService";
 
-interface AuditLog {
-  id: number;
-  user_id: number;
-  action: string;
-  entity_type: string;
-  entity_id: number;
-  old_values: string | null;
-  new_values: string | null;
-  ip_address: string;
-  browser: string;
-  created_at: string;
-}
+// Remove duplicate interface since it's imported from auditLogService
 
 export default function Logs() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -31,59 +21,29 @@ export default function Logs() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
-  // Load data on component mount
+  // Load data on component mount and when filters change
   useEffect(() => {
     loadLogs();
-  }, []);
+  }, [currentPage, itemsPerPage, searchTerm]);
 
   const loadLogs = async () => {
     try {
       setIsLoading(true);
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await auditService.getLogs();
-      // setLogs(response.data);
+      setError(null);
       
-      // Mock data for now
-      const mockLogs: AuditLog[] = [
-        {
-          id: 1,
-          user_id: 101,
-          action: "CREATE",
-          entity_type: "User",
-          entity_id: 25,
-          old_values: null,
-          new_values: JSON.stringify({ name: "John Doe", email: "john@example.com" }),
-          ip_address: "192.168.1.100",
-          browser: "Chrome 120.0",
-          created_at: "2025-01-15T10:30:00Z"
-        },
-        {
-          id: 2,
-          user_id: 102,
-          action: "UPDATE",
-          entity_type: "Project",
-          entity_id: 5,
-          old_values: JSON.stringify({ status: "pending" }),
-          new_values: JSON.stringify({ status: "approved" }),
-          ip_address: "192.168.1.101",
-          browser: "Firefox 121.0",
-          created_at: "2025-01-15T11:45:00Z"
-        },
-        {
-          id: 3,
-          user_id: 103,
-          action: "DELETE",
-          entity_type: "Document",
-          entity_id: 42,
-          old_values: JSON.stringify({ title: "Old Report", status: "draft" }),
-          new_values: null,
-          ip_address: "192.168.1.102",
-          browser: "Safari 17.2",
-          created_at: "2025-01-15T14:20:00Z"
-        }
-      ];
-      setLogs(mockLogs);
+      const filters: AuditLogFilters = {
+        search: searchTerm,
+        per_page: itemsPerPage,
+        page: currentPage,
+      };
+
+      const response = await auditLogService.getLogs(filters);
+      setLogs(response.data);
+      setTotalPages(response.pagination.last_page);
+      setTotalItems(response.pagination.total);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -91,21 +51,9 @@ export default function Logs() {
     }
   };
 
-  const filteredLogs = useMemo(() => {
-    return logs.filter(
-      (log) =>
-        log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.entity_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.user_id.toString().includes(searchTerm) ||
-        log.ip_address.includes(searchTerm)
-    );
-  }, [logs, searchTerm]);
-
-  const totalItems = filteredLogs.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // Since we're using server-side pagination, we don't need client-side filtering
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  const currentData = filteredLogs.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -122,24 +70,45 @@ export default function Logs() {
     });
   };
 
-  const formatJSON = (jsonString: string | null) => {
-    if (!jsonString) return '-';
+  const formatJSON = (data: any) => {
+    if (!data) return '-';
     try {
-      const obj = JSON.parse(jsonString);
-      return JSON.stringify(obj, null, 2);
+      if (typeof data === 'string') {
+        const obj = JSON.parse(data);
+        return JSON.stringify(obj, null, 2);
+      }
+      return JSON.stringify(data, null, 2);
     } catch {
-      return jsonString;
+      return typeof data === 'string' ? data : JSON.stringify(data);
     }
   };
 
   const getActionBadgeColor = (action: string) => {
-    switch (action.toUpperCase()) {
-      case 'CREATE':
+    switch (action.toLowerCase()) {
+      case 'create_user':
+      case 'create':
         return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'UPDATE':
+      case 'update_user':
+      case 'update':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'DELETE':
+      case 'delete_user':
+      case 'delete':
         return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      case 'login':
+        return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
+      case 'logout':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400';
+      case 'failed_login':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      case 'activate_user':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'deactivate_user':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'change_password':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'verify_token':
+      case 'refresh_token':
+        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400';
     }
@@ -261,7 +230,7 @@ export default function Logs() {
                       <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">No</p>
                     </TableCell>
                     <TableCell isHeader className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
-                      <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">User ID</p>
+                      <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">User</p>
                     </TableCell>
                     <TableCell isHeader className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
                       <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">Action</p>
@@ -282,7 +251,7 @@ export default function Logs() {
                       <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">IP Address</p>
                     </TableCell>
                     <TableCell isHeader className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
-                      <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">Browser</p>
+                      <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">User Agent</p>
                     </TableCell>
                     <TableCell isHeader className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
                       <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">Created At</p>
@@ -290,14 +259,14 @@ export default function Logs() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {currentData.length === 0 ? (
+                  {logs.length === 0 ? (
                     <tr>
                       <td colSpan={10} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                         No audit logs found
                       </td>
                     </tr>
                   ) : (
-                    currentData.map((log, index) => (
+                    logs.map((log, index) => (
                       <TableRow key={log.id}>
                         <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
                           <span className="text-gray-800 text-theme-sm dark:text-white/90">
@@ -305,7 +274,16 @@ export default function Logs() {
                           </span>
                         </TableCell>
                         <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
-                          <span className="text-gray-800 text-theme-sm dark:text-white/90">{log.user_id}</span>
+                          <div className="text-gray-800 text-theme-sm dark:text-white/90">
+                            {log.user ? (
+                              <div>
+                                <div className="font-medium">{log.user.name}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">{log.user.email}</div>
+                              </div>
+                            ) : (
+                              <span>User ID: {log.user_id}</span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getActionBadgeColor(log.action)}`}>
@@ -332,7 +310,9 @@ export default function Logs() {
                           <span className="text-gray-800 text-theme-sm dark:text-white/90">{log.ip_address}</span>
                         </TableCell>
                         <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
-                          <span className="text-gray-800 text-theme-sm dark:text-white/90">{log.browser}</span>
+                          <div className="text-gray-800 text-theme-sm dark:text-white/90 max-w-xs truncate" title={log.user_agent}>
+                            {log.user_agent}
+                          </div>
                         </TableCell>
                         <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05] whitespace-nowrap">
                           <span className="text-gray-800 text-theme-sm dark:text-white/90">{formatDate(log.created_at)}</span>
