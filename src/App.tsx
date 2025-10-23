@@ -14,6 +14,7 @@ import ComingSoon from "./pages/OtherPage/ComingSoon";
 import Landing from "./pages/LandingPage/Landing"
 import UserManage from "./pages/UserManage/user-manage";
 import Logs from "./pages/AuditLogs/Logs";
+import UserProfiles from "./pages/Profile/UserProfiles";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="/main-menu" element={<MainMenu />} />
             <Route path="/user-manage" element={<UserManage />} />
             <Route path="/logs" element={<Logs />} />
+            <Route path="/user-profiles" element={<UserProfiles />} />
           </Route>
 
           {/* Landing Page */}

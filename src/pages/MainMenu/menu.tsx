@@ -117,6 +117,7 @@ export default function MainMenu() {
             enableTilt={false}
             enableMobileTilt={true}
             onContactClick={() => setIsLogoutModalOpen(true)}
+            onClick={() => navigate('/user-profiles')}
           />
         </div>
         <div className="col-span-12 xl:col-span-8">

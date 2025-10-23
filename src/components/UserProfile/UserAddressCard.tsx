@@ -3,8 +3,13 @@ import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { User } from "../../services/authService";
 
-export default function UserAddressCard() {
+interface UserAddressCardProps {
+  user: User;
+}
+
+export default function UserAddressCard({ user }: UserAddressCardProps) {
   const { isOpen, openModal, closeModal } = useModal();
   const handleSave = () => {
     // Handle save logic here
@@ -17,45 +22,77 @@ export default function UserAddressCard() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-              Address
+              Additional Information
             </h4>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-              <div>
-                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  Country
-                </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  United States.
-                </p>
-              </div>
+              {user.department && (
+                <>
+                  <div>
+                    <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                      Department
+                    </p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                      {user.department.name}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                      Department Code
+                    </p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                      {user.department.code}
+                    </p>
+                  </div>
+                </>
+              )}
 
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  City/State
+                  Account Status
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Phoenix, Arizona, United States.
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    user.is_active 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
+                      : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                  }`}>
+                    {user.is_active ? 'Active' : 'Inactive'}
+                  </span>
                 </p>
               </div>
 
-              <div>
-                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  Postal Code
-                </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  ERT 2489
-                </p>
-              </div>
+              {user.last_login_at && (
+                <div>
+                  <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                    Last Login
+                  </p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                    {new Date(user.last_login_at).toLocaleString()}
+                  </p>
+                </div>
+              )}
 
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  TAX ID
+                  Member Since
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  AS4568384
+                  {new Date(user.created_at).toLocaleDateString()}
                 </p>
               </div>
+
+              {user.email_verified_at && (
+                <div>
+                  <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                    Email Verified
+                  </p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                    {new Date(user.email_verified_at).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

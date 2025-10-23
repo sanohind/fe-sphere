@@ -18,7 +18,7 @@ export default function AuthLayout({
         {children}
         <div className="items-center hidden w-full h-full lg:w-1/2 lg:grid">
           <div className="relative w-full h-full">
-            <Silk color="#4A1FB8" speed={15} scale={1} noiseIntensity={0.5} rotation={0} />
+            <Silk color="#2a31d8" speed={10} scale={1} noiseIntensity={1} rotation={0} />
             <div className="absolute inset-0 flex items-center justify-center z-10">
               <div className="flex flex-col items-center max-w-xs">
                 <Link to="/" className="block mb-2">

@@ -9,7 +9,7 @@ export default function Landing() {
   return (
     <>
       <PageMeta
-        title="Transform Your Business | TailAdmin"
+        title="Everything you need, all in SPHERE"
         description="Powerful admin dashboard solution designed for modern businesses"
       />
       
@@ -41,7 +41,7 @@ export default function Landing() {
                             triggerOnce={true}
                             triggerOnHover={true}
                             respectReducedMotion={true}
-                            className="text-purple-600 text-3xl font-semibold dark:text-purple-500"
+                            className="text-brand-600 text-3xl font-semibold dark:text-brand-500"
                         />
                   </h1>
                   
@@ -54,11 +54,11 @@ export default function Landing() {
               </div>
 
               {/* Right Content - Card Swap (NO Padding/Margin) */}
-              <div className="relative flex items-center justify-center lg:justify-start" style={{ minHeight: '500px' }}>
-                <div style={{ height: '500px', width: '100%', position: 'relative' }}>
+              <div className="relative flex items-center justify-center lg:justify-start" style={{ minHeight: '600px' }}>
+                <div style={{ height: '600px', width: '100%', position: 'relative' }}>
                   <CardSwap
-                    width={650}
-                    height={450}
+                    width={800}
+                    height={600}
                     cardDistance={60}
                     verticalDistance={70}
                     delay={5000}

@@ -322,7 +322,7 @@ export default function UserManage() {
             {/* Audit logs Button */}
             <button
               onClick={() => navigate('/logs')}
-              className="inline-flex items-center gap-2 rounded-lg border border-purple-600 bg-purple-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-purple-700 hover:text-white">
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-600 bg-white/5 px-4 py-2.5 text-theme-sm font-medium text-gray-200 shadow-theme-xs hover:bg-gray-600 hover:text-white">
               Audit Logs
             </button>
             {/* Add User Button */}

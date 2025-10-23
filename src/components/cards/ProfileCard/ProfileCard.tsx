@@ -20,8 +20,8 @@ interface ProfileCardProps {
   contactText?: string;
   showUserInfo?: boolean;
   onContactClick?: () => void;
+  onClick?: () => void | Promise<void>;
 }
-
 
 const DEFAULT_INNER_GRADIENT = 'linear-gradient(145deg,#60496e60 0%,#71C4FF30 100%)';
 
@@ -60,7 +60,8 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   status = 'Online',
   contactText = 'Contact',
   showUserInfo = true,
-  onContactClick
+  onContactClick,
+  onClick
 }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -275,9 +276,23 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     onContactClick?.();
   }, [onContactClick]);
 
+  const handleCardClick = useCallback(() => {
+    onClick?.();
+  }, [onClick]);
+
   return (
     <div ref={wrapRef} className={`pc-card-wrapper ${className}`.trim()} style={cardStyle}>
-      <section ref={cardRef} className="pc-card">
+      {onClick && (
+        <div className="invisible absolute bottom-full left-1/2 mb-2.5 -translate-x-1/2 opacity-0 transition-opacity duration-300 group-hover:visible group-hover:opacity-100 z-50">
+          <div className="relative">
+            <div className="drop-shadow-4xl whitespace-nowrap rounded-lg bg-white px-3 py-2 text-xs font-medium text-gray-700 dark:bg-[#1E2634] dark:text-white">
+              Click to open profile page
+            </div>
+            <div className="absolute -bottom-1 left-1/2 h-3 w-4 -translate-x-1/2 rotate-45 bg-white dark:bg-[#1E2634]"></div>
+          </div>
+        </div>
+      )}
+      <section ref={cardRef} className="pc-card group" onClick={handleCardClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
         <div className="pc-inside">
           <div className="pc-shine" />
           <div className="pc-glare" />
