@@ -80,6 +80,20 @@ export interface CreateUserData {
   phone_number?: string;
   role_id: number;
   department_id?: number;
+  is_active?: boolean;
+}
+
+export interface Department {
+  id: number;
+  name: string;
+  code: string;
+  description?: string;
+  is_active: boolean;
+}
+
+export interface DepartmentsResponse {
+  success: boolean;
+  data: Department[];
 }
 
 export interface UpdateUserData {
@@ -187,6 +201,18 @@ class UserService {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch roles');
+    }
+  }
+
+  /**
+   * Get all departments
+   */
+  async getDepartments(): Promise<DepartmentsResponse> {
+    try {
+      const response = await apiClient.get('/departments');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch departments');
     }
   }
 }

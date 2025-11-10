@@ -17,7 +17,8 @@ import {
 } from "../../components/ui/table";
 import PaginationWithIcon from "../../components/tables/DataTables/TableOne/PaginationWithIcon";
 import ProtectedRoute from "../../components/common/ProtectedRoute";
-import userService, { User, CreateUserData, UpdateUserData, Role } from "../../services/userService";
+import userService, { User, CreateUserData, UpdateUserData, Role, Department } from "../../services/userService";
+import authService, { User as AuthUser } from "../../services/authService";
 
 // Remove duplicate User interface since it's imported from userService
 
@@ -25,13 +26,15 @@ export default function UserManage() {
   const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,9 +53,16 @@ export default function UserManage() {
 
   // Load data on component mount
   useEffect(() => {
+    loadCurrentUser();
     loadUsers();
     loadRoles();
+    loadDepartments();
   }, []);
+
+  const loadCurrentUser = () => {
+    const user = authService.getCurrentUser();
+    setCurrentUser(user);
+  };
 
   const loadUsers = async () => {
     try {
@@ -72,6 +82,15 @@ export default function UserManage() {
       setRoles(response.data);
     } catch (err: any) {
       console.error('Failed to load roles:', err);
+    }
+  };
+
+  const loadDepartments = async () => {
+    try {
+      const response = await userService.getDepartments();
+      setDepartments(response.data);
+    } catch (err: any) {
+      console.error('Failed to load departments:', err);
     }
   };
 
@@ -109,13 +128,17 @@ export default function UserManage() {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'radio' ? value === 'true' : (type === 'checkbox' ? (e.target as HTMLInputElement).checked : value),
+      [name]: type === 'radio' ? (value === 'true' ? true : false) : (type === 'checkbox' ? (e.target as HTMLInputElement).checked : value),
     }));
   };
 
   const handleAddUser = () => {
     setIsEditMode(false);
-    setCurrentUser(null);
+    setEditingUser(null);
+    // Auto-set department for admin users
+    const departmentId = currentUser?.role?.slug === 'admin' && currentUser?.department?.id 
+      ? currentUser.department.id.toString() 
+      : "";
     setFormData({
       name: "",
       email: "",
@@ -124,7 +147,7 @@ export default function UserManage() {
       nik: "",
       phone_number: "",
       role_id: "",
-      department_id: "",
+      department_id: departmentId,
       is_active: true,
     });
     setIsModalOpen(true);
@@ -132,7 +155,7 @@ export default function UserManage() {
 
   const handleEditUser = (user: User) => {
     setIsEditMode(true);
-    setCurrentUser(user);
+    setEditingUser(user);
     setFormData({
       name: user.name,
       email: user.email,
@@ -169,7 +192,7 @@ export default function UserManage() {
     e.preventDefault();
 
     try {
-      if (isEditMode && currentUser) {
+      if (isEditMode && editingUser) {
         // Update existing user
         const updateData: UpdateUserData = {
           name: formData.name,
@@ -185,8 +208,8 @@ export default function UserManage() {
           updateData.password = formData.password;
         }
 
-        const response = await userService.updateUser(currentUser.id, updateData);
-        setUsers(users.map(user => user.id === currentUser.id ? response.data : user));
+        const response = await userService.updateUser(editingUser.id, updateData);
+        setUsers(users.map(user => user.id === editingUser.id ? response.data : user));
       } else {
         // Add new user
         const createData: CreateUserData = {
@@ -198,6 +221,7 @@ export default function UserManage() {
           phone_number: formData.phone_number,
           role_id: parseInt(formData.role_id),
           department_id: formData.department_id ? parseInt(formData.department_id) : undefined,
+          is_active: formData.is_active,
         };
 
         const response = await userService.createUser(createData);
@@ -328,7 +352,7 @@ export default function UserManage() {
             {/* Add User Button */}
             <button
               onClick={handleAddUser}
-              className="inline-flex items-center gap-2 rounded-lg border border-purple-600 bg-purple-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-purple-700 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#2a31d8] bg-[#2a31d8] px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-[#1B208A] hover:text-white"
             >
               <PlusIcon />
               Add User
@@ -652,7 +676,7 @@ export default function UserManage() {
                 )}
               </div>
 
-              {/* Row 3: Role and NIK */}
+              {/* Row 3: Role and Department */}
               <div>
                 <Label htmlFor="role_id">
                   Role <span className="text-red-500">*</span>
@@ -662,7 +686,8 @@ export default function UserManage() {
                   name="role_id"
                   value={formData.role_id}
                   onChange={handleInputChange}
-                  className="mt-1.5 w-full py-2 pl-3 pr-8 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-9 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                  disabled={currentUser?.role?.slug === 'admin' && isEditMode}
+                  className={`mt-1.5 w-full py-2 pl-3 pr-8 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-9 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${currentUser?.role?.slug === 'admin' && isEditMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <option value="">Select a role</option>
                   {roles.map((role) => (
@@ -671,8 +696,40 @@ export default function UserManage() {
                     </option>
                   ))}
                 </select>
+                {currentUser?.role?.slug === 'admin' && isEditMode && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Role cannot be changed
+                  </p>
+                )}
               </div>
 
+              <div>
+                <Label htmlFor="department_id">
+                  Department
+                </Label>
+                <select
+                  id="department_id"
+                  name="department_id"
+                  value={formData.department_id}
+                  onChange={handleInputChange}
+                  disabled={currentUser?.role?.slug === 'admin'}
+                  className={`mt-1.5 w-full py-2 pl-3 pr-8 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-9 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${currentUser?.role?.slug === 'admin' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <option value="">Select a department</option>
+                  {departments.map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.name} ({department.code})
+                    </option>
+                  ))}
+                </select>
+                {currentUser?.role?.slug === 'admin' && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Department is automatically set to your department
+                  </p>
+                )}
+              </div>
+
+              {/* Row 4: NIK and Phone Number */}
               <div>
                 <Label htmlFor="nik">NIK</Label>
                 <Input
@@ -686,7 +743,6 @@ export default function UserManage() {
                 />
               </div>
 
-              {/* Row 4: Phone Number and Status */}
               <div>
                 <Label htmlFor="phone_number">Phone Number</Label>
                 <Input
@@ -700,6 +756,7 @@ export default function UserManage() {
                 />
               </div>
 
+              {/* Row 5: Status */}
               <div>
                 <Label htmlFor="is_active">Status</Label>
                 <div className="flex gap-4 mt-2">

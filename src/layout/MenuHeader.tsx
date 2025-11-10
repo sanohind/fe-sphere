@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
+import authService from "../services/authService";
 import UserDropdown from "../components/header/UserDropdown";
 
 const MenuHeader: React.FC = () => {
@@ -11,8 +12,19 @@ const MenuHeader: React.FC = () => {
   // Determine if we should show UserDropdown (hide on main-menu page)
   const showUserDropdown = location.pathname !== "/main-menu";
   
-  // Determine if we should show User Manage button (hide on user-manage page)
+  // Determine if we should show action buttons (hide on their own pages)
   const showUserManageButton = location.pathname !== "/user-manage";
+  const showDepartmentManageButton = location.pathname !== "/department-manage";
+  
+  // Check user role
+  const userRole = ((): string => {
+    const user = authService.getCurrentUser();
+    return (user?.role?.slug || "").toLowerCase();
+  })();
+  
+  const isSuperadmin = userRole === "superadmin";
+  const isAdmin = userRole === "admin";
+  const canAccessUserManage = isSuperadmin || isAdmin;
   
   useEffect(() => {
     const timer = setInterval(() => {
@@ -26,12 +38,15 @@ const MenuHeader: React.FC = () => {
     setApplicationMenuOpen(!isApplicationMenuOpen);
   };
 
+  // Determine logo destination based on authentication status
+  const logoDestination = authService.isAuthenticated() ? "/main-menu" : "/";
+
   return (
     <>
       <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
         <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
           <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-start lg:border-b-0 lg:px-0 lg:py-4">
-            <Link to="/" className="flex items-center">
+            <Link to={logoDestination} className="flex items-center">
               <img
                 className="dark:hidden"
                 src="/images/logo/Logo-sanoh-2.png"
@@ -79,8 +94,8 @@ const MenuHeader: React.FC = () => {
               <p className="text-gray-500 dark:text-gray-100 text-sm">{currentTime.toLocaleTimeString()}</p>
             </div>
             
-            {/* User Manage Button - Hidden on user-manage page */}
-            {showUserManageButton && (
+            {/* User Manage Button - Only for admin and superadmin, hidden on user-manage page */}
+            {canAccessUserManage && showUserManageButton && (
               <div className="flex items-center gap-2">
                 <Link 
                   to="/user-manage"
@@ -90,6 +105,21 @@ const MenuHeader: React.FC = () => {
                     connect_without_contact
                   </span>
                   <span className="text-sm font-medium">User Manage</span>
+                </Link>
+              </div>
+            )}
+
+            {/* Department Manage Button - only for superadmin, hidden on its page */}
+            {isSuperadmin && showDepartmentManageButton && (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/department-manage"
+                  className="flex items-center gap-2 px-3 h-10 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-800"
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    account_tree
+                  </span>
+                  <span className="text-sm font-medium">Department Manage</span>
                 </Link>
               </div>
             )}

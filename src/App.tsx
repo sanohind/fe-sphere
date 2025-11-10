@@ -13,6 +13,7 @@ import SignIn from "./pages/AuthPages/SignIn";
 import ComingSoon from "./pages/OtherPage/ComingSoon";
 import Landing from "./pages/LandingPage/Landing"
 import UserManage from "./pages/UserManage/user-manage";
+import DepartmentManage from "./pages/DepartmentManage/department-manage";
 import Logs from "./pages/AuditLogs/Logs";
 import UserProfiles from "./pages/Profile/UserProfiles";
 
@@ -26,8 +27,10 @@ export default function App() {
           <Route element={<MenuLayout />}>
             <Route path="/main-menu" element={<MainMenu />} />
             <Route path="/user-manage" element={<UserManage />} />
+            <Route path="/department-manage" element={<DepartmentManage />} />
             <Route path="/logs" element={<Logs />} />
             <Route path="/user-profiles" element={<UserProfiles />} />
+            <Route path="/profile" element={<UserProfiles />} />
           </Route>
 
           {/* Landing Page */}

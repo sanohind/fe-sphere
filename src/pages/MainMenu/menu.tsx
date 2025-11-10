@@ -57,6 +57,10 @@ export default function MainMenu() {
     }
   };
 
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
   const getProjectIcon = (icon: string) => {
     const iconMap: { [key: string]: string } = {
       'warehouse': 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687',
@@ -101,7 +105,7 @@ export default function MainMenu() {
         <div className="col-span-12 xl:col-span-4">
           <ProfileCard
             name={user?.name || 'User'}
-            title={user?.role.name || 'Role'}
+            title={user?.role.name + ' ' + user?.department?.name|| 'Role'}
             handle={user?.email || 'email@example.com'}
             status="Online"
             contactText="Logout"
@@ -110,6 +114,7 @@ export default function MainMenu() {
             enableTilt={false}
             enableMobileTilt={true}
             onContactClick={() => setIsLogoutModalOpen(true)}
+            onClick={handleProfileClick}
           />
         </div>
         <div className="col-span-12 xl:col-span-8">
