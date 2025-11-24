@@ -19,6 +19,7 @@ import PaginationWithIcon from "../../components/tables/DataTables/TableOne/Pagi
 import ProtectedRoute from "../../components/common/ProtectedRoute";
 import userService, { User, CreateUserData, UpdateUserData, Role, Department } from "../../services/userService";
 import authService, { User as AuthUser } from "../../services/authService";
+import { showSuccess, showError } from "../../utils/toast";
 
 // Remove duplicate User interface since it's imported from userService
 
@@ -70,7 +71,9 @@ export default function UserManage() {
       const response = await userService.getUsers();
       setUsers(response.data);
     } catch (err: any) {
-      setError(err.message);
+      const errorMsg = err.message || 'Gagal memuat data user';
+      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -180,10 +183,13 @@ export default function UserManage() {
       try {
         await userService.deleteUser(userToDelete.id);
         setUsers(users.filter((user) => user.id !== userToDelete.id));
+        showSuccess(`User "${userToDelete.name}" has been deleted successfully`);
         setIsDeleteModalOpen(false);
         setUserToDelete(null);
       } catch (err: any) {
-        setError(err.message);
+        const errorMsg = err.message || 'Failed to delete user';
+        setError(errorMsg);
+        showError(errorMsg);
       }
     }
   };
@@ -210,6 +216,7 @@ export default function UserManage() {
 
         const response = await userService.updateUser(editingUser.id, updateData);
         setUsers(users.map(user => user.id === editingUser.id ? response.data : user));
+        showSuccess(`User "${formData.name}" has been updated successfully`);
       } else {
         // Add new user
         const createData: CreateUserData = {
@@ -226,6 +233,7 @@ export default function UserManage() {
 
         const response = await userService.createUser(createData);
         setUsers([...users, response.data]);
+        showSuccess(`User "${formData.name}" has been added successfully`);
       }
 
       setIsModalOpen(false);
@@ -241,7 +249,9 @@ export default function UserManage() {
         is_active: true,
       });
     } catch (err: any) {
-      setError(err.message);
+      const errorMsg = err.message || `Failed to ${isEditMode ? 'update' : 'add'} user`;
+      setError(errorMsg);
+      showError(errorMsg);
     }
   };
 
@@ -254,9 +264,12 @@ export default function UserManage() {
         };
         const response = await userService.updateUser(userId, updateData);
         setUsers(users.map(u => u.id === userId ? response.data : u));
+        showSuccess(`Status user "${user.name}" has been changed to ${!user.is_active ? 'active' : 'inactive'}`);
       }
     } catch (err: any) {
-      setError(err.message);
+      const errorMsg = err.message || 'Failed to change user status';
+      setError(errorMsg);
+      showError(errorMsg);
     }
   };
 

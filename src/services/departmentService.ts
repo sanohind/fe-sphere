@@ -44,7 +44,6 @@ export interface Department {
   id: number;
   name: string;
   code: string;
-  description?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -53,14 +52,12 @@ export interface Department {
 export interface CreateDepartmentData {
   name: string;
   code: string;
-  description?: string;
   is_active?: boolean;
 }
 
 export interface UpdateDepartmentData {
   name?: string;
   code?: string;
-  description?: string;
   is_active?: boolean;
 }
 

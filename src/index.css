@@ -16,6 +16,15 @@
   }
 }
 
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
 @theme {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;

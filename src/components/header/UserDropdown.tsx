@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router";
 import authService from "../../services/authService";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
+import { showSuccess, showError } from "../../utils/toast";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,11 +24,18 @@ export default function UserDropdown() {
   const handleLogout = async () => {
     try {
       await authService.logout();
-      navigate('/signin');
+      showSuccess('You have been successfully logged out. See you soon!', {
+        title: 'Logout Successful',
+      });
+      // Delay navigation slightly to show toast
+      setTimeout(() => navigate('/signin'), 500);
     } catch (err) {
       console.error('Logout error:', err);
+      showError('Logout process encountered an error, but you will be redirected.', {
+        title: 'Logout Error',
+      });
       // Force logout even if API call fails
-      navigate('/signin');
+      setTimeout(() => navigate('/signin'), 500);
     }
   };
   return (

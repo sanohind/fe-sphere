@@ -58,7 +58,6 @@ export interface User {
     name: string;
     slug: string;
     level: number;
-    description?: string;
   };
   department?: {
     id: number;

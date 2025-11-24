@@ -7,6 +7,7 @@ import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
 import { useNavigate } from "react-router";
 import authService from "../../services/authService";
+import { showSuccess, showError } from "../../utils/toast";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -36,9 +37,21 @@ export default function SignInForm() {
 
     try {
       await authService.login(formData);
-      navigate('/main-menu');
+      showSuccess('Welcome back! You have successfully logged in.', {
+        title: 'Login Successful',
+      });
+      // Delay navigation slightly to show toast
+      setTimeout(() => navigate('/main-menu'), 500);
     } catch (err: any) {
-      setError(err.message);
+      const errorMessage = err.message || 'Invalid credentials. Please check your email and password.';
+      showError(errorMessage, {
+        title: 'Login Failed',
+        actionLabel: 'Try Again',
+        onAction: () => {
+          setFormData({ ...formData, password: '' });
+        },
+      });
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -62,16 +75,11 @@ export default function SignInForm() {
               Sign In to Sphere
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter your email and password to access your projects!
+              Enter your email and password to access your apps!
             </p>
           </div>
           <div>
             <form onSubmit={handleSubmit}>
-              {error && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                  {error}
-                </div>
-              )}
               <div className="space-y-6">
                 <div>
                   <Label>
@@ -136,18 +144,6 @@ export default function SignInForm() {
                 </div>
               </div>
             </form>
-
-            <div className="mt-5">
-              <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-                Don&apos;t have an account? {""}
-                <Link
-                  to="/signup"
-                  className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
-                >
-                  Sign Up
-                </Link>
-              </p>
-            </div>
           </div>
         </div>
       </div>

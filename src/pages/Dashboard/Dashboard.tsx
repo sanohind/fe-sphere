@@ -118,7 +118,7 @@ export default function Dashboard() {
             handle={user?.email || 'email@example.com'}
             status="Online"
             contactText="Logout"
-            avatarUrl={user?.avatar || "./images/logo/Iki.png"}
+            avatarUrl={user?.avatar || "./images/logo/profile.png"}
             showUserInfo={true}
             enableTilt={true}
             enableMobileTilt={true}

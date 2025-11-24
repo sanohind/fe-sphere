@@ -6,6 +6,7 @@ import { MenuCard } from "../../components/menu/MenuCard";
 import authService, { User, Project } from "../../services/authService";
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
+import { showSuccess, showError } from "../../utils/toast";
 
 export default function MainMenu() {
   const [user, setUser] = useState<User | null>(null);
@@ -49,11 +50,18 @@ export default function MainMenu() {
   const handleLogout = async () => {
     try {
       await authService.logout();
-      navigate('/signin');
+      showSuccess('You have been successfully logged out. See you soon!', {
+        title: 'Logout Successful',
+      });
+      // Delay navigation slightly to show toast
+      setTimeout(() => navigate('/signin'), 500);
     } catch (err) {
       console.error('Logout error:', err);
+      showError('Logout process encountered an error, but you will be redirected.', {
+        title: 'Logout Error',
+      });
       // Force logout even if API call fails
-      navigate('/signin');
+      setTimeout(() => navigate('/signin'), 500);
     }
   };
 
@@ -64,7 +72,9 @@ export default function MainMenu() {
   const getProjectIcon = (icon: string) => {
     const iconMap: { [key: string]: string } = {
       'warehouse': 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687',
-      'truck': 'https://plus.unsplash.com/premium_photo-1663091967607-2e15b89f4d6e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1172'
+      'truck': 'https://plus.unsplash.com/premium_photo-1663091967607-2e15b89f4d6e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1172',
+      'arrival': 'https://images.unsplash.com/photo-1576669801820-a9ab287ac2d1?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      'driver': 'https://images.unsplash.com/photo-1757858566554-e1a81ee188c8?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
     };
     return iconMap[icon] || iconMap['files'];
   };
@@ -105,11 +115,14 @@ export default function MainMenu() {
         <div className="col-span-12 xl:col-span-4">
           <ProfileCard
             name={user?.name || 'User'}
-            title={user?.role.name + ' ' + user?.department?.name|| 'Role'}
+            title={user?.department?.name 
+              ? `${user.role.name} ${user.department.name}` 
+              : user?.role.name || 'Role'
+            }
             handle={user?.email || 'email@example.com'}
             status="Online"
             contactText="Logout"
-            avatarUrl={user?.avatar || "./images/logo/Iki.png"}
+            avatarUrl={user?.avatar || "./images/logo/profile.png"}
             showUserInfo={true}
             enableTilt={false}
             enableMobileTilt={true}

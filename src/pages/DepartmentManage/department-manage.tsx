@@ -20,6 +20,7 @@ import departmentService, {
   CreateDepartmentData,
   UpdateDepartmentData,
 } from "../../services/departmentService";
+import { showSuccess, showError } from "../../utils/toast";
 
 export default function DepartmentManage() {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -37,7 +38,6 @@ export default function DepartmentManage() {
   const [formData, setFormData] = useState({
     name: "",
     code: "",
-    description: "",
     is_active: true,
   });
 
@@ -51,7 +51,9 @@ export default function DepartmentManage() {
       const response = await departmentService.getDepartments();
       setDepartments(response.data);
     } catch (err: any) {
-      setError(err.message);
+      const errorMsg = err.message || 'Gagal memuat data departemen';
+      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -92,7 +94,7 @@ export default function DepartmentManage() {
   const handleAdd = () => {
     setIsEditMode(false);
     setCurrentDepartment(null);
-    setFormData({ name: "", code: "", description: "", is_active: true });
+    setFormData({ name: "", code: "", is_active: true });
     setIsModalOpen(true);
   };
 
@@ -102,7 +104,6 @@ export default function DepartmentManage() {
     setFormData({
       name: department.name,
       code: department.code,
-      description: department.description || "",
       is_active: department.is_active,
     });
     setIsModalOpen(true);
@@ -118,10 +119,13 @@ export default function DepartmentManage() {
     try {
       await departmentService.deleteDepartment(departmentToDelete.id);
       setDepartments(departments.filter((d) => d.id !== departmentToDelete.id));
+      showSuccess(`Department "${departmentToDelete.name}" has been deleted successfully`);
       setIsDeleteModalOpen(false);
       setDepartmentToDelete(null);
     } catch (err: any) {
-      setError(err.message);
+      const errorMsg = err.message || 'Failed to delete department';
+      setError(errorMsg);
+      showError(errorMsg);
     }
   };
 
@@ -132,7 +136,6 @@ export default function DepartmentManage() {
         const updateData: UpdateDepartmentData = {
           name: formData.name,
           code: formData.code,
-          description: formData.description,
           is_active: formData.is_active,
         };
         const response = await departmentService.updateDepartment(
@@ -142,21 +145,24 @@ export default function DepartmentManage() {
         setDepartments(
           departments.map((d) => (d.id === currentDepartment.id ? response.data : d))
         );
+        showSuccess(`Department "${formData.name}" has been updated successfully`);
       } else {
         const createData: CreateDepartmentData = {
           name: formData.name,
           code: formData.code,
-          description: formData.description,
           is_active: formData.is_active,
         };
         const response = await departmentService.createDepartment(createData);
         setDepartments([...departments, response.data]);
+        showSuccess(`Department "${formData.name}" has been added successfully`);
       }
 
       setIsModalOpen(false);
-      setFormData({ name: "", code: "", description: "", is_active: true });
+      setFormData({ name: "", code: "", is_active: true });
     } catch (err: any) {
-      setError(err.message);
+      const errorMsg = err.message || `Gagal ${isEditMode ? 'memperbarui' : 'menambahkan'} departemen`;
+      setError(errorMsg);
+      showError(errorMsg);
     }
   };
 
@@ -303,10 +309,6 @@ export default function DepartmentManage() {
               <div>
                 <Label htmlFor="code">Code <span className="text-red-500">*</span></Label>
                 <Input id="code" name="code" type="text" placeholder="e.g. WH, LOG" value={formData.code} onChange={handleInputChange} className="mt-1.5" />
-              </div>
-              <div className="md:col-span-2">
-                <Label htmlFor="description">Description</Label>
-                <Input id="description" name="description" type="text" placeholder="Enter description" value={formData.description} onChange={handleInputChange} className="mt-1.5" />
               </div>
               <div className="md:col-span-2">
                 <Label htmlFor="is_active">Status</Label>

@@ -53,7 +53,6 @@ export interface User {
     name: string;
     slug: string;
     level: number;
-    description?: string;
   };
   department?: {
     id: number;
@@ -87,7 +86,6 @@ export interface Department {
   id: number;
   name: string;
   code: string;
-  description?: string;
   is_active: boolean;
 }
 
@@ -111,7 +109,6 @@ export interface Role {
   name: string;
   slug: string;
   level: number;
-  description?: string;
   is_active: boolean;
 }
 

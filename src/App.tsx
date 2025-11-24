@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import MainMenu from "./pages/MainMenu/menu";
 import NotFound from "./pages/OtherPage/NotFound";
 import Maintenance from "./pages/OtherPage/Maintenance";
@@ -53,6 +55,12 @@ export default function App() {
           <Route path="/coming-soon" element={<ComingSoon />} />
         </Routes>
       </Router>
+      <ToastContainer 
+        newestOnTop={true}
+        rtl={false}
+        pauseOnFocusLoss
+        style={{ zIndex: 999999 }}
+      />
     </>
   );
 }
