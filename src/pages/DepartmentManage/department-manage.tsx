@@ -25,7 +25,6 @@ import { showSuccess, showError } from "../../utils/toast";
 export default function DepartmentManage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -52,7 +51,6 @@ export default function DepartmentManage() {
       setDepartments(response.data);
     } catch (err: any) {
       const errorMsg = err.message || 'Gagal memuat data departemen';
-      setError(errorMsg);
       showError(errorMsg);
     } finally {
       setIsLoading(false);
@@ -124,7 +122,6 @@ export default function DepartmentManage() {
       setDepartmentToDelete(null);
     } catch (err: any) {
       const errorMsg = err.message || 'Failed to delete department';
-      setError(errorMsg);
       showError(errorMsg);
     }
   };
@@ -161,7 +158,6 @@ export default function DepartmentManage() {
       setFormData({ name: "", code: "", is_active: true });
     } catch (err: any) {
       const errorMsg = err.message || `Gagal ${isEditMode ? 'memperbarui' : 'menambahkan'} departemen`;
-      setError(errorMsg);
       showError(errorMsg);
     }
   };
