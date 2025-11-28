@@ -3,18 +3,20 @@ import { Link, useLocation } from "react-router";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import authService from "../services/authService";
 import UserDropdown from "../components/header/UserDropdown";
+import { getHashAwarePathname } from "../utils/hashNavigation";
 
 const MenuHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const location = useLocation();
+  const currentPath = getHashAwarePathname(location);
   
   // Determine if we should show UserDropdown (hide on main-menu page)
-  const showUserDropdown = location.pathname !== "/main-menu";
+  const showUserDropdown = currentPath !== "/main-menu";
   
   // Determine if we should show action buttons (hide on their own pages)
-  const showUserManageButton = location.pathname !== "/user-manage";
-  const showDepartmentManageButton = location.pathname !== "/department-manage";
+  const showUserManageButton = currentPath !== "/user-manage";
+  const showDepartmentManageButton = currentPath !== "/department-manage";
   
   // Check user role
   const userRole = ((): string => {

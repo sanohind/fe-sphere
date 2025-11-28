@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import UserMetaCard from "../../components/UserProfile/UserMetaCard";
 import UserInfoCard from "../../components/UserProfile/UserInfoCard";
 import UserAddressCard from "../../components/UserProfile/UserAddressCard";
 import PageMeta from "../../components/common/PageMeta";
 import authService, { User } from "../../services/authService";
+import { useSignInRedirect } from "../../hooks/useSignInRedirect";
+import UserProfileSkeleton from "../../components/skeletons/UserProfileSkeleton";
 
 export default function UserProfiles() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const redirectToSignIn = useSignInRedirect();
 
   useEffect(() => {
     loadUserProfile();
@@ -25,7 +26,7 @@ export default function UserProfiles() {
     } catch (err: any) {
       setError(err.message);
       if (err.message.includes('401') || err.message.includes('unauthorized')) {
-        navigate('/signin');
+        redirectToSignIn();
       }
     } finally {
       setIsLoading(false);
@@ -33,11 +34,7 @@ export default function UserProfiles() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
-      </div>
-    );
+    return <UserProfileSkeleton />;
   }
 
   if (error || !user) {

@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-import { useNavigate } from "react-router";
 import authService from "../../services/authService";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import { showSuccess, showError } from "../../utils/toast";
+import { useSignInRedirect } from "../../hooks/useSignInRedirect";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const navigate = useNavigate();
+  const redirectToSignIn = useSignInRedirect();
   const currentUser = authService.getCurrentUser();
 
   function toggleDropdown() {
@@ -28,14 +28,14 @@ export default function UserDropdown() {
         title: 'Logout Successful',
       });
       // Delay navigation slightly to show toast
-      setTimeout(() => navigate('/signin'), 500);
+      setTimeout(() => redirectToSignIn(), 500);
     } catch (err) {
       console.error('Logout error:', err);
       showError('Logout process encountered an error, but you will be redirected.', {
         title: 'Logout Error',
       });
       // Force logout even if API call fails
-      setTimeout(() => navigate('/signin'), 500);
+      setTimeout(() => redirectToSignIn(), 500);
     }
   };
   return (

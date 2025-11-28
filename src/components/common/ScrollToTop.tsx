@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router";
+import { getHashAwarePathname } from "../../utils/hashNavigation";
 
 export function ScrollToTop() {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const currentPath = getHashAwarePathname(location);
 
   useEffect(() => {
     window.scrollTo({
@@ -10,7 +12,7 @@ export function ScrollToTop() {
       left: 0,
       behavior: "smooth",
     });
-  }, [pathname]);
+  }, [currentPath]);
 
   return null;
 }

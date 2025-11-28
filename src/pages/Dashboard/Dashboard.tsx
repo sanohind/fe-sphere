@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
 import ProfileCard from "../../components/cards/ProfileCard/ProfileCard";
 import { MenuCard } from "../../components/menu/MenuCard";
 import authService, { User, Project } from "../../services/authService";
+import { useSignInRedirect } from "../../hooks/useSignInRedirect";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const redirectToSignIn = useSignInRedirect();
 
   useEffect(() => {
     loadDashboard();
@@ -26,7 +26,7 @@ export default function Dashboard() {
       setError(err.message);
       // If not authenticated, redirect to login
       if (err.message.includes('401') || err.message.includes('unauthorized')) {
-        navigate('/signin');
+        redirectToSignIn();
       }
     } finally {
       setIsLoading(false);
@@ -53,11 +53,11 @@ export default function Dashboard() {
   const handleLogout = async () => {
     try {
       await authService.logout();
-      navigate('/signin');
+      redirectToSignIn();
     } catch (err) {
       console.error('Logout error:', err);
       // Force logout even if API call fails
-      navigate('/signin');
+      redirectToSignIn();
     }
   };
 

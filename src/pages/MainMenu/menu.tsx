@@ -7,6 +7,8 @@ import authService, { User, Project } from "../../services/authService";
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
 import { showSuccess, showError } from "../../utils/toast";
+import { useSignInRedirect } from "../../hooks/useSignInRedirect";
+import MainMenuSkeleton from "../../components/skeletons/MainMenuSkeleton";
 
 export default function MainMenu() {
   const [user, setUser] = useState<User | null>(null);
@@ -15,6 +17,7 @@ export default function MainMenu() {
   const [error, setError] = useState<string | null>(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const navigate = useNavigate();
+  const redirectToSignIn = useSignInRedirect();
 
   useEffect(() => {
     loadDashboard();
@@ -30,7 +33,7 @@ export default function MainMenu() {
       setError(err.message);
       // If not authenticated, redirect to login
       if (err.message.includes('401') || err.message.includes('unauthorized')) {
-        navigate('/signin');
+        redirectToSignIn();
       }
     } finally {
       setIsLoading(false);
@@ -54,14 +57,14 @@ export default function MainMenu() {
         title: 'Logout Successful',
       });
       // Delay navigation slightly to show toast
-      setTimeout(() => navigate('/signin'), 500);
+      setTimeout(() => redirectToSignIn(), 500);
     } catch (err) {
       console.error('Logout error:', err);
       showError('Logout process encountered an error, but you will be redirected.', {
         title: 'Logout Error',
       });
       // Force logout even if API call fails
-      setTimeout(() => navigate('/signin'), 500);
+      setTimeout(() => redirectToSignIn(), 500);
     }
   };
 
@@ -80,11 +83,7 @@ export default function MainMenu() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
-      </div>
-    );
+    return <MainMenuSkeleton />;
   }
 
   if (error) {

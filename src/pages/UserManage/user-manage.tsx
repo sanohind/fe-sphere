@@ -20,6 +20,7 @@ import ProtectedRoute from "../../components/common/ProtectedRoute";
 import userService, { User, CreateUserData, UpdateUserData, Role, Department } from "../../services/userService";
 import authService, { User as AuthUser } from "../../services/authService";
 import { showSuccess, showError } from "../../utils/toast";
+import UserManageSkeleton from "../../components/skeletons/UserManageSkeleton";
 
 // Remove duplicate User interface since it's imported from userService
 
@@ -96,6 +97,9 @@ export default function UserManage() {
       console.error('Failed to load departments:', err);
     }
   };
+
+  // Check if current user is superadmin
+  const isSuperadmin = currentUser?.role?.slug === 'superadmin';
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -274,11 +278,7 @@ export default function UserManage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
-      </div>
-    );
+    return <UserManageSkeleton />;
   }
 
   return (
@@ -482,6 +482,16 @@ export default function UserManage() {
                           Role
                         </p>
                       </TableCell>
+                      {isSuperadmin && (
+                        <TableCell
+                          isHeader
+                          className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
+                        >
+                          <p className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
+                            Department
+                          </p>
+                        </TableCell>
+                      )}
                       <TableCell
                         isHeader
                         className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]"
@@ -512,7 +522,7 @@ export default function UserManage() {
                     {currentData.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={7}
+                          colSpan={isSuperadmin ? 8 : 7}
                           className="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
                         >
                           No users found
@@ -537,6 +547,19 @@ export default function UserManage() {
                           <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
                             <RoleBadge role={user.role.name} />
                           </TableCell>
+                          {isSuperadmin && (
+                            <TableCell className="px-4 py-3 font-normal dark:text-gray-400/90 text-gray-800 border border-gray-100 dark:border-white/[0.05] text-theme-sm whitespace-nowrap">
+                              {user.department ? (
+                                <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                                  {user.department.name}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 dark:text-gray-500 italic">
+                                  No department
+                                </span>
+                              )}
+                            </TableCell>
+                          )}
                           <TableCell className="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
                             <button
                               onClick={() => handleToggleStatus(user.id)}

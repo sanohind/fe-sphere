@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import authService from '../../services/authService';
+import { useSignInRedirect } from '../../hooks/useSignInRedirect';
+import ProtectedRouteSkeleton from '../skeletons/ProtectedRouteSkeleton';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,13 +16,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const redirectToSignIn = useSignInRedirect();
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         // Check if user has token
         if (!authService.isAuthenticated()) {
-          navigate('/signin');
+          redirectToSignIn();
           return;
         }
 
@@ -28,7 +31,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         const result = await authService.verifyToken();
         
         if (!result.valid) {
-          navigate('/signin');
+          redirectToSignIn();
           return;
         }
 
@@ -56,21 +59,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         setIsAuthenticated(true);
       } catch (error) {
         console.error('Auth check failed:', error);
-        navigate('/signin');
+        redirectToSignIn();
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAuth();
-  }, [navigate, requiredRole]);
+  }, [navigate, redirectToSignIn, requiredRole]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
-      </div>
-    );
+    return <ProtectedRouteSkeleton />;
   }
 
   if (!isAuthenticated) {

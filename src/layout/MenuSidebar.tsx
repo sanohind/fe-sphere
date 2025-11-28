@@ -21,6 +21,7 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
+import { getHashAwarePathname } from "../utils/hashNavigation";
 
 type NavItem = {
   name: string;
@@ -173,6 +174,7 @@ const supportItems: NavItem[] = [
 const MenuSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
+  const currentPath = getHashAwarePathname(location);
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "support" | "others";
@@ -185,8 +187,8 @@ const MenuSidebar: React.FC = () => {
 
   // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback(
-    (path: string) => location.pathname === path,
-    [location.pathname]
+    (path: string) => currentPath === path,
+    [currentPath]
   );
 
   useEffect(() => {
