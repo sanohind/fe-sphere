@@ -1,126 +1,66 @@
 import PageMeta from "../../components/common/PageMeta";
-import CardSwap, {Card} from "../../components/card_swap/CardSwarp";
 import LandingHeader from "../../components/header/LandingHeader";
-import Shuffle from "../../components/effects/Shuffle";
 import { useSignInRedirect } from "../../hooks/useSignInRedirect";
 
 export default function Landing() {
   const redirectToSignIn = useSignInRedirect();
+
   return (
     <>
-      <PageMeta
-        title="Everything you need, all in SPHERE"
-        description="Powerful admin dashboard solution designed for modern businesses"
-      />
-      
-      {/* Layout Container */}
-      <div className="h-screen bg-white dark:bg-gray-900 flex flex-col overflow-hidden">
-        {/* Navbar */}
-        <LandingHeader />
-        
-        {/* Hero Section - Takes remaining space */}
-        <section className="relative flex-1 flex items-center overflow-hidden">
-          <div className="w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-              
-              {/* Left Content - With Padding */}
-              <div className="flex items-center px-6 md:px-12 lg:px-16 xl:px-24 py-20 lg:py-0">
-                <div className="max-w-xl space-y-6">
-                  
-                  <h1 className="text-4xl md:text-5xl font-medium leading-tight text-gray-900 dark:text-white">
-                    Everything You Need,<br/> All in <br/>
-                        <Shuffle
-                            text="SPHERE"
-                            shuffleDirection="right"
-                            duration={0.35}
-                            animationMode="evenodd"
-                            shuffleTimes={1}
-                            ease="power3.out"
-                            stagger={0.03}
-                            threshold={0.1}
-                            triggerOnce={true}
-                            triggerOnHover={true}
-                            respectReducedMotion={true}
-                            className="text-brand-600 text-3xl font-semibold dark:text-brand-500"
-                        />
-                  </h1>
-                  
+      <PageMeta title="Everything you need, all in SPHERE" description="Powerful admin dashboard solution designed for modern businesses" />
+      <div className="relative h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
+        <div className="absolute bottom-0 right-0 overflow-hidden lg:inset-y-0">
+          <img className="w-auto h-full" src="https://d33wubrfki0l68.cloudfront.net/1e0fc04f38f5896d10ff66824a62e466839567f8/699b5/images/hero/3/background-pattern.png" alt="" />
+        </div>
 
-                  {/* Sign In button */}
-                  <button onClick={redirectToSignIn} className="inline-flex items-center px-10 py-4 rounded-lg shadow-sm text-xl font-medium text-gray-700 transition-colors bg-gray-100 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
+        <LandingHeader />
+
+        <section className="relative flex-1 overflow-hidden flex items-center justify-center">
+          <div className="px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl">
+            <div className="grid grid-cols-1 gap-y-8 lg:items-center lg:grid-cols-2 sm:gap-y-20 xl:grid-cols-5">
+              <div className="text-center xl:col-span-2 lg:text-left md:px-16 lg:px-0">
+                <div className="max-w-sm mx-auto sm:max-w-md md:max-w-full">
+                  <h1 className="text-4xl font-bold leading-tight text-gray-900 dark:text-white sm:text-5xl sm:leading-tight lg:text-6xl lg:leading-tight font-pj">Everything you need, all in Sphere</h1>
+
+                  <div className="mt-8 lg:mt-12 lg:flex lg:items-center">
+                    <div className="flex justify-center flex-shrink-0 -space-x-4 overflow-hidden lg:justify-start">
+                      <img
+                        className="inline-block rounded-full w-14 h-14 ring-2 ring-white dark:ring-gray-800"
+                        src="https://d33wubrfki0l68.cloudfront.net/3bfa6da479d6b9188c58f2d9a8d33350290ee2ef/301f1/images/hero/3/avatar-male.png"
+                        alt=""
+                      />
+                      <img
+                        className="inline-block rounded-full w-14 h-14 ring-2 ring-white dark:ring-gray-800"
+                        src="https://d33wubrfki0l68.cloudfront.net/b52fa09a115db3a80ceb2d52c275fadbf84cf8fc/7fd8a/images/hero/3/avatar-female-1.png"
+                        alt=""
+                      />
+                      <img
+                        className="inline-block rounded-full w-14 h-14 ring-2 ring-white dark:ring-gray-800"
+                        src="https://d33wubrfki0l68.cloudfront.net/8a2efb13f103a5ae2909e244380d73087a9c2fc4/31ed6/images/hero/3/avatar-female-2.png"
+                        alt=""
+                      />
+                    </div>
+
+                    <p className="mt-4 text-lg text-gray-900 dark:text-gray-300 lg:mt-0 lg:ml-4 font-pj">
+                      Join with <span className="font-bold">4600+ Developers</span> and start getting feedbacks right now
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-8 sm:flex sm:items-center sm:justify-center lg:justify-start sm:space-x-5 lg:mt-12">
+                  <button
+                    onClick={redirectToSignIn}
+                    className="inline-flex items-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-gray-900 dark:bg-gray-800 border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 dark:focus:ring-gray-700 font-pj justif-center hover:bg-gray-700 dark:hover:bg-gray-700"
+                  >
                     Get Started
                   </button>
                 </div>
               </div>
 
-              {/* Right Content - Card Swap (NO Padding/Margin) */}
-              <div className="relative flex items-center justify-center lg:justify-start" style={{ minHeight: '600px' }}>
-                <div style={{ height: '600px', width: '100%', position: 'relative' }}>
-                  <CardSwap
-                    width={800}
-                    height={600}
-                    cardDistance={60}
-                    verticalDistance={70}
-                    delay={5000}
-                    pauseOnHover={true}
-                  >
-                    <Card className="p-4 bg-gray/20 rounded-2xl shadow-2xl">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-2xl">
-                          ⚡
-                        </div>
-                        <h3 className="text-xl text-white font-semibold">Effectiveness</h3>
-                      </div>
-                      <hr className="border-white/30 mb-4" />
-                      <p className="text-base text-white/90 leading-relaxed">
-                        Experience blazing-fast performance with our optimized architecture. 
-                        Load pages 3x faster and handle millions of data points effortlessly.
-                      </p>
-                      <div className="mt-6 flex flex-wrap items-center gap-2 text-white/90 text-sm">
-                        <span className="px-3 py-1 rounded-full">99.9% Uptime</span>
-                        <span className="px-3 py-1 rounded-full">&lt;100ms Response</span>
-                      </div>
-                    </Card>
-
-                    <Card className="p-4 bg-gray/20 rounded-2xl shadow-2xl">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-2xl">
-                          🛡️
-                        </div>
-                        <h3 className="text-xl text-white font-semibold">Reliability</h3>
-                      </div>
-                      <hr className="border-white/30 mb-4" />
-                      <p className="text-base text-white/90 leading-relaxed">
-                        Your data is protected with enterprise-grade encryption and advanced security protocols. 
-                        SOC 2 Type II certified with automatic backups.
-                      </p>
-                      <div className="mt-6 flex flex-wrap items-center gap-2 text-white/90 text-sm">
-                        <span className="bg-white/20 px-3 py-1 rounded-full">256-bit Encryption</span>
-                        <span className="bg-white/20 px-3 py-1 rounded-full">SOC 2 Certified</span>
-                      </div>
-                    </Card>
-
-                    <Card className="p-4 bg-gray/20 rounded-2xl shadow-2xl">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-2xl">
-                          🚀
-                        </div>
-                        <h3 className="text-xl text-white font-semibold">Efficiency</h3>
-                      </div>
-                      <hr className="border-white/30 mb-4" />
-                      <p className="text-base text-white/90 leading-relaxed">
-                        Built to grow with your business. From startup to enterprise, our infrastructure 
-                        automatically scales to meet your demands seamlessly.
-                      </p>
-                      <div className="mt-6 flex flex-wrap items-center gap-2 text-white/90 text-sm">
-                        <span className="bg-white/20 px-3 py-1 rounded-full">Auto-Scaling</span>
-                        <span className="bg-white/20 px-3 py-1 rounded-full">Unlimited Users</span>
-                      </div>
-                    </Card>
-                  </CardSwap>
-                </div>
+              <div className="xl:col-span-3">
+                {/* <img className="w-full mx-auto scale-110" src="https://d33wubrfki0l68.cloudfront.net/29c501c64b21014b3f2e225abe02fe31fd8f3a5c/f866d/images/hero/3/illustration.png" alt="" /> */}
+                <img className="w-full mx-auto scale-110" src="../../../public/images/brand/tult-landing-10.png" alt="" />
               </div>
-
             </div>
           </div>
         </section>
