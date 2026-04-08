@@ -101,6 +101,8 @@ export interface UpdateUserData {
   name?: string;
   nik?: string;
   phone_number?: string;
+  role_id?: number;
+  department_id?: number | null;
   is_active?: boolean;
 }
 

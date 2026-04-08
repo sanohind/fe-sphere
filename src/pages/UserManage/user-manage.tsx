@@ -210,6 +210,8 @@ export default function UserManage() {
           username: formData.username,
           nik: formData.nik,
           phone_number: formData.phone_number,
+          role_id: formData.role_id ? parseInt(formData.role_id) : undefined,
+          department_id: formData.department_id ? parseInt(formData.department_id) : null,
           is_active: formData.is_active,
         };
 
